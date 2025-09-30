@@ -1,8 +1,9 @@
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter/material.dart';
-import 'package:routing/homepage.dart';
 import 'package:routing/register.dart';
+import 'package:routing/homepage.dart';
+import 'package:dio/dio.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +14,51 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
+  bool _isLoading = false;
+  final Dio _dio = Dio();
+
+  Future<void> _login(String username, String password) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _dio.post(
+        'https://dummyjson.com/auth/login',
+        data: {'username': username, 'password': password},
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        // Store token, for now just navigate
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      String errorMessage = 'Login failed. Please try again.';
+      if (e.response != null && e.response?.data is Map) {
+        errorMessage = e.response?.data['message'] ?? 'Invalid credentials.';
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 35,
-                    child: Image.asset("/images/logo.png"),
+                  Center(
+                    child: Image.asset('assets/images/logo.png', height: 200),
                   ),
                   SizedBox(height: 10),
-          ]),
+                ],
+              ),
             ),
 
             Padding(
@@ -53,10 +98,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     FormBuilderTextField(
-                      name: 'email',
+                      name: 'username',
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        hintText: 'Enter Email',
+                        prefixIcon: const Icon(Icons.person),
+                        hintText: 'Enter Username',
                         filled: true,
                         fillColor: Colors.grey.shade200,
                         border: OutlineInputBorder(
@@ -66,9 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       validator: FormBuilderValidators.compose([
                         FormBuilderValidators.required(
-                          errorText: 'Email required',
+                          errorText: 'Username required',
                         ),
-                        FormBuilderValidators.email(errorText: 'Invalid email'),
                       ]),
                     ),
                     const SizedBox(height: 20),
@@ -111,26 +155,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState?.saveAndValidate() ??
-                              false) {
-                            final formData = _formKey.currentState!.value;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Email: ${formData['email']}'),
-                              ),);
-                              setState(() {
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> Homepage()));
-                            });
-                            
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Validation Failed'),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                if (_formKey.currentState?.saveAndValidate() ??
+                                    false) {
+                                  final formData = _formKey.currentState!.value;
+                                  _login(
+                                    formData['username'],
+                                    formData['password'],
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Validation Failed'),
+                                    ),
+                                  );
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
@@ -138,10 +180,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           backgroundColor: Colors.orange,
                         ),
-                        child: const Text(
-                          'LOGIN',
-                          style: TextStyle(fontSize: 18),
-                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'LOGIN',
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
 
@@ -154,7 +200,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> RegisterScreen()));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RegisterScreen(),
+                                ),
+                              );
                             });
                           },
                           child: const Text(

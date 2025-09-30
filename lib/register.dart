@@ -35,21 +35,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 35,
-                    child: Icon(Icons.menu, color: Colors.orange, size: 35),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Register',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
+                children: [
+                Center(
+                  child: Image.asset('assets/images/logo.png',height: 200,),
+                )
                 ],
               ),
             ),
@@ -72,7 +61,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      validator: FormBuilderValidators.required(errorText: 'Full Name required'),
+                      validator: FormBuilderValidators.required(
+                        errorText: 'Full Name required',
+                      ),
                     ),
                     const SizedBox(height: 15),
                     FormBuilderTextField(
@@ -88,7 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: 'Email required'),
+                        FormBuilderValidators.required(
+                          errorText: 'Email required',
+                        ),
                         FormBuilderValidators.email(errorText: 'Invalid email'),
                       ]),
                     ),
@@ -108,9 +101,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: 'Phone required'),
-                        FormBuilderValidators.numeric(errorText: 'Numbers only'),
-                        FormBuilderValidators.minLength(10, errorText: 'At least 10 digits'),
+                        FormBuilderValidators.required(
+                          errorText: 'Phone required',
+                        ),
+                        FormBuilderValidators.numeric(
+                          errorText: 'Numbers only',
+                        ),
+                        FormBuilderValidators.minLength(
+                          10,
+                          errorText: 'At least 10 digits',
+                        ),
                       ]),
                     ),
                     const SizedBox(height: 15),
@@ -129,8 +129,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: 'Password required'),
-                        FormBuilderValidators.minLength(6, errorText: 'Min 6 chars'),
+                        FormBuilderValidators.required(
+                          errorText: 'Password required',
+                        ),
+                        FormBuilderValidators.minLength(
+                          6,
+                          errorText: 'Min 6 chars',
+                        ),
                       ]),
                     ),
                     const SizedBox(height: 20),
@@ -139,14 +144,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (_formKey.currentState?.saveAndValidate() ?? false) {
+                          if (_formKey.currentState?.saveAndValidate() ??
+                              false) {
                             final formData = _formKey.currentState!.value;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Register: ${formData['email']}')),
+                              SnackBar(
+                                content: Text('Register: ${formData['email']}'),
+                              ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Validation Failed')),
+                              const SnackBar(
+                                content: Text('Validation Failed'),
+                              ),
                             );
                           }
                         },
@@ -173,16 +183,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              Navigator.push(context, MaterialPageRoute(builder: (context)=> LoginScreen()));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LoginScreen(),
+                                ),
+                              );
                             });
                           },
                           child: const Text(
                             'Login Now',
-                            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),

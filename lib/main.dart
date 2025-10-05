@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:routing/login.dart';
+import 'package:provider/provider.dart';
+import 'package:routing/Login.dart';
+import 'package:routing/providers/auth_provider.dart';
+import 'package:routing/providers/product_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,13 +15,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 240, 233, 251)),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 240, 233, 251)),
+        ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }
@@ -39,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const  LoginScreen()),
       );
     });
   }

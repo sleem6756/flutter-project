@@ -45,8 +45,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// For Logout, you might navigate away or show a dialog.
-// For this example, we'll just show a simple screen.
 class LogoutScreen extends StatefulWidget {
   const LogoutScreen({super.key});
 

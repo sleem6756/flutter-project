@@ -1,8 +1,10 @@
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:routing/register.dart';
 import 'package:routing/homepage.dart';
+import 'package:routing/providers/auth_provider.dart';
 import 'package:dio/dio.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,29 +16,20 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
-  bool _isLoading = false;
-  final Dio _dio = Dio();
 
   Future<void> _login(String username, String password) async {
-    setState(() {
-      _isLoading = true;
-    });
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      final response = await _dio.post(
-        'https://dummyjson.com/auth/login',
-        data: {'username': username, 'password': password},
-      );
+      await authProvider.login(username, password);
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        // Store token, for now just navigate
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-      }
+      // Navigate on success
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
     } on DioException catch (e) {
       if (!mounted) return;
       String errorMessage = 'Login failed. Please try again.';
@@ -51,12 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(errorMessage)));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
@@ -152,43 +139,47 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 10),
 
                     // Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                if (_formKey.currentState?.saveAndValidate() ??
-                                    false) {
-                                  final formData = _formKey.currentState!.value;
-                                  _login(
-                                    formData['username'],
-                                    formData['password'],
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Validation Failed'),
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          backgroundColor: Colors.orange,
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                'LOGIN',
-                                style: TextStyle(fontSize: 18),
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, child) {
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: authProvider.isLoading
+                                ? null
+                                : () {
+                                    if (_formKey.currentState?.saveAndValidate() ??
+                                        false) {
+                                      final formData = _formKey.currentState!.value;
+                                      _login(
+                                        formData['username'],
+                                        formData['password'],
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Validation Failed'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
-                      ),
+                              backgroundColor: Colors.orange,
+                            ),
+                            child: authProvider.isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text(
+                                    'LOGIN',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 15),
